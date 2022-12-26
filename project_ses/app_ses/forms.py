@@ -3,23 +3,23 @@ from .models import AppUser, Course,Student
 
 class UserResisterForm(forms.ModelForm):
     password= forms.CharField(widget=forms.PasswordInput)
-    
     class Meta:
         fields=("full_name","email","password","usertype","contact")
-        model=AppUser
+        Model=AppUser
+
 
 class UserLoginForm(forms.ModelForm):
     password= forms.CharField(widget=forms.PasswordInput)
-
     class Meta:
         fields=("email","password")
-        model=AppUser
+        #fields= ""__all__"- incase of all fields
+        Model=AppUser
 
 class CourseCreateForm(forms.ModelForm):
 
     class Meta:
         fields= ("title","code")
-        model=Course
+        Model=Course
 
 class StudentCreateForm(forms.ModelForm):
     class Meta:
@@ -27,4 +27,4 @@ class StudentCreateForm(forms.ModelForm):
             "contact", "gender", "blood_group", "academic_level", \
             "academic_status", "academic_org", "academic_score",\
             "course", "intake", "shift", "remarks")
-        model=Student
+        Model=Student

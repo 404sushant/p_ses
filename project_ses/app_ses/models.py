@@ -15,7 +15,8 @@ class AppUser(models.Model):
 class Course(models.Model):
     title = models.CharField(max_length=200)
     code = models.CharField(max_length=20)
-
+    def __str__(self):
+        return self.full_name
     class Meta:
         db_table = "app_courses"
 
@@ -36,6 +37,9 @@ class Student(models.Model):
     shift = models.CharField(max_length=100, null=True, blank=True)
     remarks = models.CharField(max_length=200)
     visited_at = models.DateTimeField(default=datetime.now())
+
+    def __str__(self):
+        return self.first_name
 
     class Meta:
         db_table = "app_students"
