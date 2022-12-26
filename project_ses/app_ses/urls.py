@@ -6,7 +6,7 @@
 # ]
 from django.urls import path
 from . import views
-from .views import (StudentApiView)
+from .views import (StudentApiView, StudentIdApiView)
 
 
 
@@ -24,4 +24,6 @@ urlpatterns = [
     path("users/login/", views.user_login, name="users.login"),
     #api urls
     path("api/students/", StudentApiView.as_view(), name="student-list"),
+    path("api/students/", StudentApiView.as_view()),
+    path("api/students/<int:id>/", StudentIdApiView.as_view()),
 ]

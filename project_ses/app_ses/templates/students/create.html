@@ -21,7 +21,7 @@ Student | CREATE
         <div class="card-body">
             <form action="{% url 'students.create' %}" method="POST">
                 {% csrf_token %}
-                {{ temp_form.as_p }}
+                {{ form.as_p }}
                 <input type="submit" class="btn btn-primary" value="ADD STUDENT">
             </form>
         </div>

@@ -1,8 +1,9 @@
 from django.shortcuts import render,redirect
-from .forms import StudentCreateForm,CourseCreateForm, UserResisterForm, UserLoginForm
+from .forms import StudentCreateForm, CourseCreateForm, UserResisterForm, UserLoginForm
 from .models import Course, Student, AppUser
-
-
+import json
+from django.http import JsonResponse
+from django.core.mail import send_mail
 
 #package for API
 from  rest_framework import status
@@ -18,7 +19,89 @@ class StudentApiView(APIView):
     def get(self, request):
         student_list= Student.object.all()# model object
         serializer= StudentSerializer(student_list)
-        
+    def post(self, request):
+        data = {
+            "first_name": request.data.get("first_name"),
+            "middle_name":request.data.get("middle_name"),
+            "last_name": request.data.get("last_name"),
+            "email": request.data.get("email"),
+            "contact": request.data.get("contact"),
+            "gender": request.data.get("gender"),
+            "blood_group": request.data.get("blood_group"),
+            "academic_level": request.data.get("academic_level"),
+            "academic_status": request.data.get("academic_status"),
+            "academic_org": request.data.get("academic_org"),
+            "academic_score": request.data.get("academic_score"),
+            "course": request.data.get("course_id"),
+            "intake": request.data.get("intake"),
+            "shift": request.data.get("shift"),
+            "remarks": request.data.get("remarks"),
+        }
+
+        serializer = StudentSerializer(data=data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+class StudentIdApiView(APIView):
+
+    def get_object(self, id):
+        try:
+            data = Student.objects.get(id=id)
+            return data
+        except Student.DoesNotExist:
+            return None
+
+    def get(self, request, id):
+        std_instance = self.get_object(id)
+
+        if not std_instance:
+            return Response({"error": "Data not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        serializer = StudentSerializer(std_instance)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def put(self, request, id):
+        std_instance = self.get_object(id)
+
+        if not std_instance:
+            return Response({"error": "Data not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        data = {
+            "first_name": request.data.get("first_name"),
+            "middle_name":request.data.get("middle_name"),
+            "last_name": request.data.get("last_name"),
+            "email": request.data.get("email"),
+            "contact": request.data.get("contact"),
+            "gender": request.data.get("gender"),
+            "blood_group": request.data.get("blood_group"),
+            "academic_level": request.data.get("academic_level"),
+            "academic_status": request.data.get("academic_status"),
+            "academic_org": request.data.get("academic_org"),
+            "academic_score": request.data.get("academic_score"),
+            "course": request.data.get("course_id"),
+            "intake": request.data.get("intake"),
+            "shift": request.data.get("shift"),
+            "remarks": request.data.get("remarks"),
+        }
+
+        serializer = StudentSerializer(instance=std_instance, data=data, partial=False)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        else:
+            return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        std_instance = self.get_object(id)
+
+        if not std_instance:
+            return Response({"error": "Data not found"}, status=status.HTTP_404_NOT_FOUND)
+
+        std_instance.delete()
+        return Response({"msg": "Data deleted"}, status=status.HTTP_200_OK)       
 def user_register(request):
     reg_form = UserResisterForm()
     context = {"form": reg_form}
@@ -26,6 +109,12 @@ def user_register(request):
         user_form_data = UserResisterForm(request.POST)
         if user_form_data.is_valid():
             user_form_data.save()
+            send_mail(
+                "User Registration", # subject
+                "Congratulations! Your account has been created", # message
+                "c4crypt@gmail.com", # sender
+                [request.POST.get('email')] # receiver
+            )
             return redirect("users.login")
         else:
             return redirect("users.register")
@@ -37,9 +126,9 @@ def user_login(request):
     if request.method == "POST":
         req_email = request.POST.get("email")
         req_password = request.POST.get("password")
-        request.session["session_email"] = user_data.email
         user_data = AppUser.objects.get(email=req_email)
         if user_data.email == req_email and user_data.password == req_password:
+            request.session["session_email"] = user_data.email
             return redirect("students.index")
         else:
             return redirect("users.login")
@@ -53,6 +142,9 @@ def student_index(request):
     return render(request, "students/index.html", context)
 
 def student_create(request):
+    if not request.session.has_key("session_email"):
+        return redirect("users.login")
+        
     std_create_form=StudentCreateForm()
     context={
         "form":std_create_form
@@ -82,22 +174,30 @@ def student_create(request):
     return render(request, "students/create.html", context)
 
 def student_show(request, id):
+    if not request.session.has_key("session_email"):
+        return redirect("users.login")
     data = Student.objects.get(id=id)
     context = {"data": data}
     return render(request, "students/show.html", context)
 
 def student_edit(request, id):
+    if not request.session.has_key("session_email"):
+        return redirect("users.login")
     data = Student.objects.get(id=id)
     courses = Course.objects.all()
     context = {"data": data, "courses": courses}
     return render(request, "students/edit.html", context)
 
 def student_delete(request, id):
+    if not request.session.has_key("session_email"):
+        return redirect("users.login")
     data = Student.objects.get(id=id)
     data.delete()
     return redirect("students.index")
 
 def student_update(request):
+    if not request.session.has_key("session_email"):
+        return redirect("users.login")
     if request.method == "POST":
         course = Course.objects.get(id=request.POST.get("course_id"))
         std_obj = Student.objects.get(id=request.POST.get('id'))
