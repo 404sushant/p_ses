@@ -4,6 +4,8 @@ from .models import Course, Student, AppUser
 import json
 from django.http import JsonResponse
 from django.core.mail import send_mail
+from django.contrib.auth.decorators import login_required
+from django.contrib.auth.models import User
 
 #package for API
 from  rest_framework import status
