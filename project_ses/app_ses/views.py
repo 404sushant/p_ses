@@ -136,13 +136,16 @@ def user_login(request):
             return redirect("users.login")
     return render(request, "users/login.html", context)
 
+@login_required(login_url="/authentication/login")
 def student_index(request):
+    
     if not request.session.has_key("session_email"):
         return redirect("users.login")
     std_list = Student.objects.all()
     context = {"std_list": std_list}
     return render(request, "students/index.html", context)
 
+@login_required(login_url="/authentication/login")
 def student_create(request):
     if not request.session.has_key("session_email"):
         return redirect("users.login")
@@ -197,6 +200,7 @@ def student_delete(request, id):
     data.delete()
     return redirect("students.index")
 
+@login_required(login_url="/authentication/login")
 def student_update(request):
     if not request.session.has_key("session_email"):
         return redirect("users.login")
